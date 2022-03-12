@@ -49,7 +49,7 @@ while True: # interface
 				if "--" in inst:
 					ddOpts.append(inst)
 				
-				elif "-" in inst:
+				elif "-" in inst and inst in ["-i", "-o", "-st", "-sp", "-t"]: # avoids negative numbers
 					sdOpts.append([inst, instructions[instructions.index(inst) + 1]])
 
 		except(IndexError):

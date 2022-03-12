@@ -75,15 +75,20 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 	# OPTIONS LOADING
 
 	for opts in sdOptions:
-		if opts[0] == "-st": # number of steps
-			stepsNumber = abs(int(opts[1]))
+		try:
+			if opts[0] == "-st": # number of steps
+				stepsNumber = abs(int(opts[1]))
 
-			if stepsNumber == 0:
-				print(colorPrint("\n\tError: steps error", bcolors.GREEN))
-				return bodies
+			if opts[0] == "-t": # computation time
+				computeTime = float(opts[1])
+		
+		except(ValueError):
+			print(colorPrint("\n\tError: no computed orbits", bcolors.RED))
+			return bodies
 
-		if opts[0] == "-t": # computation time
-			computeTime = float(opts[1])
+	if stepsNumber == 0:
+		print(colorPrint("\n\tError: steps error", bcolors.RED))
+		return bodies
 
 	stepsSize = computeTime / stepsNumber
 	forceArray = np.zeros_like(np.arange(3 * len(bodies)).reshape(len(bodies), 3), dtype=float)
@@ -95,18 +100,31 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 
 	computeStart = time.time()
 
-	for _ in range(stepsNumber):
-		for i in range(len(bodies)):
-			for j in range(len(bodies)):
-				if j != i:
-					forceArray[i] += newton(bodies[i], bodies[j]) # calculate newton's force force bodies i, j while i != j
-			
-		for k in range(len(bodies)):
-			bodies[k].update(forceArray[k], stepsSize)
-			forceArray[k] *= .0 # forceArray "reset"
+	try:
 
-	computeEnd = time.time()
-	
-	print(colorPrint("\tDone, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " secoonds", bcolors.GREEN))
+		for steps in range(stepsNumber):
+			for i in range(len(bodies)):
+				for j in range(len(bodies)):
+					if j != i:
+						forceArray[i] += newton(bodies[i], bodies[j]) # calculate newton's force for bodies i, j while i != j
+				
+			for k in range(len(bodies)):
+				bodies[k].update(forceArray[k], stepsSize)
+				forceArray[k] *= .0 # forceArray "reset"
+
+		computeEnd = time.time()
+		
+		print(colorPrint("\tDone, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", bcolors.GREEN))
+
+	except(KeyboardInterrupt):
+		computeEnd = time.time()
+		print() # needed space
+		print(colorPrint("\tStopped, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", bcolors.RED))
+		print(colorPrint("\t" + str(steps) + " steps evaluated", bcolors.RED))
+
+	except(EOFError):
+		computeEnd = time.time()
+		print(colorPrint("\tStopped, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", bcolors.RED))
+		print(colorPrint("\t" + str(steps) + " steps evaluated", bcolors.RED))
 
 	return bodies
