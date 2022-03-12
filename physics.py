@@ -34,7 +34,12 @@ class body:
 			print(colorPrint("\n\tError: value error", bcolors.RED))
 			self.creationFlag = False
 
-		except(KeyboardInterrupt, EOFError):
+		except(KeyboardInterrupt):
+			print() # needed space
+			print(colorPrint("\n\tCancelled", bcolors.RED))
+			self.creationFlag = False
+
+		except(EOFError):
 			print(colorPrint("\n\tCancelled", bcolors.RED))
 			self.creationFlag = False
 
