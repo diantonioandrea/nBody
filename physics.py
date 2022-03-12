@@ -6,8 +6,10 @@ from utils import checkOptions, colorPrint, bcolors
 class body:
 
 	def __init__(self):
+		self.creationFlag = True
+
 		try: 
-			self.mass = float(input("\nMass, M: "))
+			self.mass = float(input("\n\tMass, M: "))
 
 			if self.mass < 0:
 				print(colorPrint("\n\tNegative mass will repulse positive mass", bcolors.GREEN))
@@ -17,11 +19,11 @@ class body:
 
 			print() # needed space
 			for p in range(3):
-				pos[p] = float(input("Position, X_" + str(p + 1) + ": "))
+				pos[p] = float(input("\tPosition, X_" + str(p + 1) + ": "))
 
 			print() # needed space
 			for s in range(3):
-				spd[s] = float(input("Speed, S_" + str(s + 1) + ": "))
+				spd[s] = float(input("\tSpeed, S_" + str(s + 1) + ": "))
 
 			self.coordinates = np.array([pos, spd])
 			self.trajectory = np.array([pos])
@@ -30,11 +32,15 @@ class body:
 
 		except(ValueError):
 			print(colorPrint("\n\tError: value error", bcolors.RED))
-			return None
+			self.creationFlag = False
 
-		except(KeyboardInterrupt):
-			print(colorPrint("\n\tError: cancelled", bcolors.RED))
-			return None
+		except(KeyboardInterrupt, EOFError):
+			print(colorPrint("\n\tCancelled", bcolors.RED))
+			self.creationFlag = False
+
+		except:
+			print(colorPrint("\n\tError", bcolors.RED))
+			self.creationFlag = False
 	
 	def __str__(self) -> str:
 		selfString = "\n\tMass, M: " + str(self.mass)

@@ -26,11 +26,17 @@ if not os.path.exists(str(os.getcwd()) + "/data"):
 print(utils.colorPrint("N-BODY", utils.bcolors.BLUE))
 print(utils.colorPrint("N-body orbits visualization program with CLI", utils.bcolors.BLUE))
 print(utils.colorPrint("Developed by Andrea Di Antonio", utils.bcolors.BLUE))
-print(utils.colorPrint("\nType Help if needed", utils.bcolors.BLUE))
+print(utils.colorPrint("\nType \'help\' if needed", utils.bcolors.BLUE))
+
+try:
+	user = os.getlogin()
+
+except:
+	user = "user"
 
 while True: # interface
 	try:
-		command = " ".join(input("\nN-BODY command and options: ").split()).lower()
+		command = " ".join(input("\n" + user + "@N-BODY: ").split()).lower()
 		instructions = command.split(" ")
 
 		# OPTIONS, SINGLE DASH [[-key1, value1], ...] AND DOUBLE DASH [--key1, ...]
@@ -52,8 +58,17 @@ while True: # interface
 
 		if len(instructions) > 0:
 
+			# EXIT PROGRAM
+
 			if instructions[0] in ["exit", "quit"]:
 				break
+
+			# HELP
+
+			elif instructions[0] == "help":
+
+				utils.help()
+				continue
 
 			# LIST BODIES
 			
@@ -74,6 +89,8 @@ while True: # interface
 				
 				continue
 
+			# PLOT COMPUTED ORBITS
+
 			elif instructions[0] == "show":
 				if not computedFlag:
 					print(utils.colorPrint("\n\tError: no computed orbits", utils.bcolors.RED))
@@ -82,27 +99,37 @@ while True: # interface
 				graphics.plot(bodies, sdOptions=sdOpts, ddOptions=ddOpts)
 				continue
 
+			# CLEAR BODIES LIST
+
 			elif instructions[0] == "clear":
 				bodies = []
 				computedFlag = False
 				print(utils.colorPrint("\n\tCleared bodies list", utils.bcolors.GREEN))
 				continue
+
+			# CREATE A NEW BODY
 		
 			elif instructions[0] == "newbody":
 				newBody = physics.body()
 
-				if newBody != None:
+				if newBody.creationFlag:
 					bodies.append(newBody)
 				continue
+
+			# DUMP BODIES LIST TO A FILE
 			
 			elif instructions[0] == "dump":
 				utils.dump(bodies, sdOptions=sdOpts)
 				continue
+
+			# LOAD BODIES LIST FROM A FILE
 				
 			elif instructions[0] == "load":
 				bodies = utils.load(sdOptions=sdOpts)
 				computedFlag = False
 				continue
+
+			# COMPUTE ORBITS
 
 			elif instructions[0] == "compute":
 				if len(bodies) < 2:

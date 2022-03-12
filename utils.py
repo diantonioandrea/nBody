@@ -81,3 +81,41 @@ def load(sdOptions=[]):
 	print(colorPrint("\n\tLoaded data from file: " + filename, bcolors.GREEN))
 
 	return loadContent
+
+def help():
+	print(colorPrint("\n\texit, quit", bcolors.BLUE))
+	print("\t\tExits from program")
+
+	print(colorPrint("\n\tlist", bcolors.BLUE))
+	print("\t\tLists current bodies")
+
+	print(colorPrint("\n\tclear", bcolors.BLUE))
+	print("\t\tClears current bodies")
+
+	print(colorPrint("\n\tnewbody", bcolors.BLUE))
+	print("\t\tCreates a new body")
+
+	print(colorPrint("\n\tcompute", bcolors.BLUE))
+	print("\t\tComputes orbits")
+	print("\n\t\tAvailable options:")
+	print("\n\t\t-t N: sets N as computation time, " + colorPrint("required", bcolors.RED))
+	print("\t\t-st N: sets N as steps number, " + colorPrint("required", bcolors.RED))
+
+	print(colorPrint("\n\tshow", bcolors.BLUE))
+	print("\t\tPlots computed orbits")
+	print("\n\t\tAvailable options:")
+	print("\n\t\t--now: instantly plots computed orbits, ignores other options")
+	print("\t\t-sp N: sets N as plotting speed")
+
+	print(colorPrint("\n\tdump", bcolors.BLUE))
+	print("\t\tDumps current bodies to a specified file")
+	print("\n\t\tAvailable options:")
+	print("\n\t\t-o FILENAME: specifies file, " + colorPrint("required", bcolors.RED))
+	print("\t\t-p PATH: sets PATH as PATH/FILENAME")
+
+	print(colorPrint("\n\tload", bcolors.BLUE))
+	print("\t\tLoads bodies from a specified file previously dumped")
+	print("\n\t\tAvailable options:")
+	print("\n\t\t-i FILENAME: specifies file, " + colorPrint("required", bcolors.RED))
+	print("\t\t-p PATH: sets PATH as PATH/FILENAME")
+	
