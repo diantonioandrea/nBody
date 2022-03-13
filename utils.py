@@ -149,5 +149,5 @@ def help():
 	print("\n\t\tAvailable options:")
 	print("\n\t\t-i FILENAME, input: specifies file without any extensions, " + colorPrint("required", bcolors.RED))
 	print("\t\t-p PATH, path: sets PATH as PATH/FILENAME")
-	print("\t\t--csv: loads a .csv file with line format M,X0,X1,X2,S0,S1,S2")
+	print("\t\t--csv: loads a .csv file with line format M,X0,X1,X2,S0,S1,S2(,LABEL)")
 	

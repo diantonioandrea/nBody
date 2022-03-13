@@ -72,7 +72,11 @@ def plot(bodies: list, sdOptions=[], ddOptions=[]):
 				ax.plot3D(b.trajectory[:, 0], b.trajectory[:, 1], b.trajectory[:, 2])
 
 		for l in ax.lines:
-			l.set_label('Body ' + str(ax.lines.index(l)))
+			if bodies[ax.lines.index(l)].label == "":
+				l.set_label('Body ' + str(ax.lines.index(l)))
+		
+			else:
+				l.set_label(bodies[ax.lines.index(l)].label)
 
 		ax.legend()
 

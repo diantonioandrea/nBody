@@ -11,7 +11,7 @@ class body:
 
 		if csvLine != "": # creates body from a .csv file
 
-			# FORMAT: M,X0,X1,X2,S0,S1,S2
+			# FORMAT: M,X0,X1,X2,S0,S1,S2(,LABEL)
 
 			csvData = csvLine.split(",")
 
@@ -36,6 +36,12 @@ class body:
 				print(utils.colorPrint("\n\tError, check code or csv file", utils.bcolors.RED))
 				self.creationFlag = False
 
+			try:
+				self.label = csvData[7] # not required
+
+			except(IndexError):
+				self.label = ""
+
 		else:
 			try: 
 				self.mass = float(input("\n\tMass, M: "))
@@ -56,6 +62,8 @@ class body:
 
 				self.coordinates = np.array([pos, spd])
 				self.trajectory = np.array([pos])
+
+				self.label = str(input("\n\tLabel (can be empty): "))
 
 				print(utils.colorPrint("\n\tNew body created", utils.bcolors.GREEN))
 
