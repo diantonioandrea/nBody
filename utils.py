@@ -131,14 +131,14 @@ def help():
 	print("\n\t\tAvailable options:")
 	print("\n\t\t-t N, time: sets N as computation time, " + colorPrint("required", bcolors.RED))
 	print("\t\t-st N, steps: sets N as steps number, " + colorPrint("required", bcolors.RED))
-	print("\n\t\t--now: uses parallel computing")
+	print("\t\t--parallel: uses parallel computing, " + colorPrint("NOT WORKING PROPERLY", bcolors.RED))
 
 	print(colorPrint("\n\tshow", bcolors.BLUE))
 	print("\t\tPlots computed orbits")
 	print("\n\t\tAvailable options:")
-	print("\t\t-sp N, speed: sets N as plotting speed")
+	print("\n\t\t-sp N, speed: sets N as plotting speed")
 	print("\t\t-rn RANGESTART:RANGEEND, range: plots only bodies in this range")
-	print("\n\t\t--now: instantly plots computed orbits, ignores -sp")
+	print("\t\t--now: instantly plots computed orbits, ignores -sp")
 
 	print(colorPrint("\n\tdump", bcolors.BLUE))
 	print("\t\tDumps current bodies to a specified file")

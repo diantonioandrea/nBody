@@ -176,7 +176,7 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 		if parallelFlag:
 			print(utils.colorPrint("\tUsing parallel computing", utils.bcolors.GREEN))
 
-			with joblib.Parallel(n_jobs=-1, backend="multiprocessing") as parallel:
+			with joblib.Parallel(n_jobs=len(bodies)) as parallel:
 
 				for steps in range(stepsNumber):
 					forceArray = parallel(joblib.delayed(evaluateForce)(index, bodies) for index in indexes)
