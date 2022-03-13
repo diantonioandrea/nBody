@@ -1,4 +1,4 @@
-import csv
+import multiprocessing, joblib
 import numpy as np
 import time
 
@@ -120,11 +120,24 @@ class body:
 def newton(fb: body, sb: body) -> np.array:
 	return fb.mass * sb.mass / (fb.distance(sb) ** 3) * (sb.coordinates[0] - fb.coordinates[0])
 
+def evaluateForce(index: int, bodies: list) -> np.array:
+	force = np.array([.0, .0, .0])
+
+	for j in range(len(bodies)):
+		if j != index:
+			force += newton(bodies[index], bodies[j]) # calculate newton's force for bodies index, j while index != j
+
+	return force
+
 def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 	rOptions = ["-t", "-st"] # requires time and steps
 
 	if not utils.checkOptions(rOptions, sdOpts=sdOptions, ddOpts=ddOptions):
 		return bodies
+
+	# DEFAULTS
+
+	parallelFlag = False
 
 	# OPTIONS LOADING
 
@@ -133,41 +146,60 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 			if opts[0] == "-st": # number of steps
 				stepsNumber = abs(int(opts[1]))
 
-			if opts[0] == "-t": # computation time
+			elif opts[0] == "-t": # computation time
 				computeTime = float(opts[1])
 		
 		except(ValueError):
-			print(utils.colorPrint("\n\tError: no computed orbits", utils.bcolors.RED))
+			print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))
 			return bodies
+
+	for opts in ddOptions:
+		if opts == "--parallel":
+			parallelFlag = True
 
 	if stepsNumber == 0:
 		print(utils.colorPrint("\n\tError: steps error", utils.bcolors.RED))
 		return bodies
 
 	stepsSize = computeTime / stepsNumber
-	forceArray = np.zeros_like(np.arange(3 * len(bodies)).reshape(len(bodies), 3), dtype=float)
 
 	if stepsSize < 0:
-		print(utils.colorPrint("\n\tComputing (backwards) " + str(stepsNumber) + " steps with size " + str(abs(stepsSize)) + " for " + str(len(bodies)) + " bodies...", utils.bcolors.GREEN))
+		print(utils.colorPrint("\n\tComputing (backwards) " + str(stepsNumber) + " steps with size " + str(abs(stepsSize)) + " for " + str(len(bodies)) + " bodies", utils.bcolors.GREEN))
 	else:
-		print(utils.colorPrint("\n\tComputing " + str(stepsNumber) + " steps with size " + str(stepsSize) + " for " + str(len(bodies)) + " bodies...", utils.bcolors.GREEN))
+		print(utils.colorPrint("\n\tComputing " + str(stepsNumber) + " steps with size " + str(stepsSize) + " for " + str(len(bodies)) + " bodies", utils.bcolors.GREEN))
 
+	indexes = range(len(bodies))
 	computeStart = time.time()
 
 	try:
 
-		for steps in range(stepsNumber):
-			for i in range(len(bodies)):
-				for j in range(len(bodies)):
-					if j != i:
-						forceArray[i] += newton(bodies[i], bodies[j]) # calculate newton's force for bodies i, j while i != j
-				
-			for k in range(len(bodies)):
-				bodies[k].update(forceArray[k], stepsSize)
-				forceArray[k] *= .0 # forceArray "reset"
+		if parallelFlag:
+			print(utils.colorPrint("\tUsing parallel computing", utils.bcolors.GREEN))
 
-		computeEnd = time.time()
+			with joblib.Parallel(n_jobs=-1, backend="multiprocessing") as parallel:
+
+				for steps in range(stepsNumber):
+					forceArray = parallel(joblib.delayed(evaluateForce)(index, bodies) for index in indexes)
+						
+					for k in indexes:
+						bodies[k].update(forceArray[k], stepsSize)
+						forceArray[k] *= .0 # forceArray "reset"
+
+				computeEnd = time.time()
 		
+		else:
+			forceArray = np.zeros_like(np.arange(3 * len(bodies)).reshape(len(bodies), 3), dtype=float)
+
+			for steps in range(stepsNumber):
+				for i in indexes:
+					forceArray[i] += evaluateForce(i, bodies)
+					
+				for k in indexes:
+					bodies[k].update(forceArray[k], stepsSize)
+					forceArray[k] *= .0 # forceArray "reset"
+
+			computeEnd = time.time()
+			
 		print(utils.colorPrint("\tDone, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", utils.bcolors.GREEN))
 
 	except(KeyboardInterrupt):
