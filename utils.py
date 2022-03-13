@@ -135,8 +135,8 @@ def help():
 	print(colorPrint("\n\tshow", bcolors.BLUE))
 	print("\t\tPlots computed orbits")
 	print("\n\t\tAvailable options:")
-	print("\n\t\t--now: instantly plots computed orbits, ignores other options")
 	print("\t\t-sp N, speed: sets N as plotting speed")
+	print("\n\t\t--now: instantly plots computed orbits, ignores other options")
 
 	print(colorPrint("\n\tdump", bcolors.BLUE))
 	print("\t\tDumps current bodies to a specified file")
