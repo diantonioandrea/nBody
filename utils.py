@@ -64,34 +64,52 @@ def dump(tbDumped, sdOptions=[]):
 
 	print(colorPrint("\n\tDumped data to file: " + filename, bcolors.GREEN))
 
-def load(sdOptions=[], noneObject=None):
+def load(sdOptions=[], ddOptions=[], noneObject=None):
 	rOptions = ["-i"]
 
-	if not checkOptions(rOptions, sdOpts=sdOptions):
-		return None
+	# DEFAULTS
 
 	path = "data/"
+	ext = ".pck"
+	rMode = "rb"
+
+	if not checkOptions(rOptions, sdOpts=sdOptions):
+		return noneObject, ext
 
 	for opts in sdOptions:
 		if opts[0] == "-i": # input file
-			filename = opts[1] + ".pck"
+			filename = opts[1]
 
 		elif opts[0] == "-p": # path (until folder before)
 			path = opts[1]
 
+	for opts in ddOptions:
+		if opts == "--csv": # csv files
+			ext = ".csv"
+			rMode = "r"
+
+	filename += ext
+
 	try:
-		loadFile = open(path + filename, "rb")
+		loadFile = open(path + filename, rMode)
 	
 	except(FileNotFoundError):
 		print(colorPrint("\n\tError: file or directory not found", bcolors.RED))
-		return noneObject
+		return noneObject, ext
 
-	loadContent = pickle.load(loadFile)
-	loadFile.close()
+	if ext == ".pck":
+		loadContent = pickle.load(loadFile)
+		loadFile.close()
 
-	print(colorPrint("\n\tLoaded data from file: " + filename, bcolors.GREEN))
+		print(colorPrint("\n\tLoaded data from file: " + filename, bcolors.GREEN))
 
-	return loadContent
+	elif ext == ".csv":
+		loadContent = loadFile.readlines()
+		loadFile.close()
+
+		print(colorPrint("\n\tLoaded data from file: " + filename, bcolors.GREEN))
+
+	return loadContent, ext
 
 def help():
 	print(colorPrint("\n\tN-BODY HELP", bcolors.BLUE))
@@ -105,7 +123,7 @@ def help():
 	print(colorPrint("\n\tclear", bcolors.BLUE))
 	print("\t\tClears current bodies")
 
-	print(colorPrint("\n\tnewbody", bcolors.BLUE))
+	print(colorPrint("\n\tnew", bcolors.BLUE))
 	print("\t\tCreates a new body")
 
 	print(colorPrint("\n\tcompute", bcolors.BLUE))
@@ -131,4 +149,5 @@ def help():
 	print("\n\t\tAvailable options:")
 	print("\n\t\t-i FILENAME, input: specifies file without any extensions, " + colorPrint("required", bcolors.RED))
 	print("\t\t-p PATH, path: sets PATH as PATH/FILENAME")
+	print("\t\t--csv: loads a .csv file with line format M,X0,X1,X2,S0,S1,S2")
 	

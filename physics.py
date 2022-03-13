@@ -1,3 +1,4 @@
+import csv
 import numpy as np
 import time
 
@@ -5,57 +6,85 @@ import utils
 
 class body:
 
-	def __init__(self):
+	def __init__(self, csvLine=""):
 		self.creationFlag = True
 
-		try: 
-			self.mass = float(input("\n\tMass, M: "))
+		if csvLine != "": # creates body from a .csv file
 
-			if self.mass < 0:
-				print(utils.colorPrint("\n\tPay attention with negative masses", utils.bcolors.CYAN))
+			# FORMAT: M,X0,X1,X2,S0,S1,S2
 
-			pos = np.array([.0, .0, .0])
-			spd = np.array([.0, .0, .0])
+			csvData = csvLine.split(",")
 
-			print() # needed space
-			for p in range(3):
-				pos[p] = float(input("\tPosition, X_" + str(p + 1) + ": "))
+			try:
+				self.mass = float(csvData[0])
 
-			print() # needed space
-			for s in range(3):
-				spd[s] = float(input("\tSpeed, S_" + str(s + 1) + ": "))
+				pos = np.array([float(csvData[1]), float(csvData[2]), float(csvData[3])])
+				spd = np.array([float(csvData[4]), float(csvData[5]), float(csvData[6])])
 
-			self.coordinates = np.array([pos, spd])
-			self.trajectory = np.array([pos])
+				self.coordinates = np.array([pos, spd])
+				self.trajectory = np.array([pos])
 
-			print(utils.colorPrint("\n\tNew body created", utils.bcolors.GREEN))
+			except(IndexError):
+				print(utils.colorPrint("\n\tError: csv error", utils.bcolors.RED))
+				self.creationFlag = False
 
-		except(ValueError):
-			print(utils.colorPrint("\n\tError: value error", utils.bcolors.RED))
-			self.creationFlag = False
+			except(ValueError):
+				print(utils.colorPrint("\n\tError: value error, check csv file", utils.bcolors.RED))
+				self.creationFlag = False
 
-		except(KeyboardInterrupt):
-			print() # needed space
-			print(utils.colorPrint("\n\tCancelled", utils.bcolors.RED))
-			self.creationFlag = False
+			except:
+				print(utils.colorPrint("\n\tError, check code or csv file", utils.bcolors.RED))
+				self.creationFlag = False
 
-		except(EOFError):
-			print(utils.colorPrint("\n\tCancelled", utils.bcolors.RED))
-			self.creationFlag = False
+		else:
+			try: 
+				self.mass = float(input("\n\tMass, M: "))
 
-		except:
-			print(utils.colorPrint("\n\tError", utils.bcolors.RED))
-			self.creationFlag = False
+				if self.mass < 0:
+					print(utils.colorPrint("\n\tPay attention with negative masses", utils.bcolors.RED))
+
+				pos = np.array([.0, .0, .0])
+				spd = np.array([.0, .0, .0])
+
+				print() # needed space
+				for p in range(3):
+					pos[p] = float(input("\tPosition, X_" + str(p + 1) + ": "))
+
+				print() # needed space
+				for s in range(3):
+					spd[s] = float(input("\tSpeed, S_" + str(s + 1) + ": "))
+
+				self.coordinates = np.array([pos, spd])
+				self.trajectory = np.array([pos])
+
+				print(utils.colorPrint("\n\tNew body created", utils.bcolors.GREEN))
+
+			except(ValueError):
+				print(utils.colorPrint("\n\tError: value error", utils.bcolors.RED))
+				self.creationFlag = False
+
+			except(KeyboardInterrupt):
+				print() # needed space
+				print(utils.colorPrint("\n\tCancelled", utils.bcolors.RED))
+				self.creationFlag = False
+
+			except(EOFError):
+				print(utils.colorPrint("\n\tCancelled", utils.bcolors.RED))
+				self.creationFlag = False
+
+			except:
+				print(utils.colorPrint("\n\tError", utils.bcolors.RED))
+				self.creationFlag = False
 	
 	def __str__(self, others=[]) -> str:
-		selfString = "\n\tMass, M: " + str(self.mass)
+		selfString = "\n\t\tMass, M: " + str(self.mass)
 
-		selfString += "\n\tPosition, X: "
+		selfString += "\n\t\tPosition, X: "
 
 		for x in self.coordinates[0]:
 			selfString += str(round(x, 4)) + " "
 
-		selfString += "\n\tSpeed, S: "
+		selfString += "\n\t\tSpeed, S: "
 
 		for s in self.coordinates[1]:
 			selfString += str(round(s, 4)) + " "
@@ -67,7 +96,7 @@ class body:
 
 			for ob in others:
 				if self != ob:
-					selfString += "\n\tDistance from body " + str(others.index(ob)) + ": " + str(round(self.distance(ob), 4))
+					selfString += "\n\t\tDistance from body " + str(others.index(ob)) + ": " + str(round(self.distance(ob), 4))
 
 		return selfString
 

@@ -84,4 +84,4 @@ def plot(bodies: list, sdOptions=[], ddOptions=[]):
 		plt.show()
 	
 	except:
-		print(utils.colorPrint("\n\tError: graphics error", utils.bcolors.RED))
+		print(utils.colorPrint("\n\tError: unknown graphics error", utils.bcolors.RED))

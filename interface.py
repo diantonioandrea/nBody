@@ -81,7 +81,6 @@ while True: # interface
 			# EXIT PROGRAM
 
 			if instructions[0] in ["exit", "quit"]:
-				print(utils.colorPrint("\n\tExited", utils.bcolors.GREEN))
 				sys.exit(0)
 
 			# HELP
@@ -112,7 +111,7 @@ while True: # interface
 
 			# CREATE A NEW BODY
 		
-			elif instructions[0] == "newbody":
+			elif instructions[0] == "new":
 				newBody = physics.body()
 
 				if newBody.creationFlag:
@@ -139,16 +138,31 @@ while True: # interface
 				graphics.plot(bodies, sdOptions=sdOpts, ddOptions=ddOpts)
 				continue
 
-			# DUMP BODIES LIST TO A FILE
+			# DUMP BODIES LIST TO A .pck FILE
 			
 			elif instructions[0] == "dump":
-				utils.dump(bodies, sdOptions=sdOpts)
+				utils.dump(bodies, sdOptions=sdOpts) # dumps to a .pck file
 				continue
 
-			# LOAD BODIES LIST FROM A FILE
+			# LOAD BODIES LIST FROM A .pck OR .csv FILE
 				
 			elif instructions[0] == "load":
-				bodies = utils.load(sdOptions=sdOpts, noneObject=[])
+				loadBodies, loadExt = utils.load(sdOptions=sdOpts, ddOptions=ddOpts, noneObject=[])
+
+				if loadExt == ".pck":
+					bodies = loadBodies
+
+				elif loadExt == ".csv":
+					bodies = []
+
+					for csvLines in loadBodies:
+						newBody = physics.body(csvLines)
+
+						if newBody.creationFlag:
+							bodies.append(newBody)
+				
+				if len(loadBodies) > 0:
+					print(utils.colorPrint("\tLoaded " + str(len(loadBodies)) + " bodies", utils.bcolors.GREEN))
 				continue
 		
 		print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))
