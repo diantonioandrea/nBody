@@ -37,7 +37,7 @@ class body:
 				self.creationFlag = False
 
 			try:
-				self.label = csvData[7] # not required
+				self.label = csvData[7].replace("\n", "") # label not required
 
 			except(IndexError):
 				self.label = ""
@@ -81,7 +81,7 @@ class body:
 				self.creationFlag = False
 
 			except:
-				print(utils.colorPrint("\n\tError", utils.bcolors.RED))
+				print(utils.colorPrint("\n\tError: unknown error", utils.bcolors.RED))
 				self.creationFlag = False
 	
 	def __str__(self, others=[]) -> str:

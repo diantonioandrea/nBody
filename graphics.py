@@ -35,13 +35,17 @@ def findLimits(bodies: list, axis: int):
 	
 	return (minValue, maxValue)
 
-def plot(bodies: list, sdOptions=[], ddOptions=[]):
+def plot(plotBodies: list, sdOptions=[], ddOptions=[]):
 	try:
 
 		# DEFAULTS
 
 		speed = 1
 		instantPlot = False
+		rangeFlag = False
+		rangeString = ""
+		rStart = 0
+		rEnd = len(plotBodies)
 
 		# OPTIONS LOADING
 
@@ -49,9 +53,31 @@ def plot(bodies: list, sdOptions=[], ddOptions=[]):
 			if opts[0] == "-sp": # SPEED
 				speed = abs(int(opts[1]))
 
+			elif opts[0] == "-rn":
+				try:
+					rStart = int(opts[1].split(":")[0])
+					rEnd = int(opts[1].split(":")[1])
+
+					rangeString = opts[1]
+					rangeFlag = True
+				
+				except(IndexError, ValueError):
+					print(utils.colorPrint("\n\tError: syntax error, plotting all bodies", utils.bcolors.RED))
+
 		for opts in ddOptions:
 			if opts == "--now": # FAST PLOTTING
 				instantPlot = True
+
+		if rangeFlag:
+			if 0 <= rStart < len(plotBodies) and 0 < rEnd <= len(plotBodies) and rStart < rEnd:
+				bodies = plotBodies[rStart:rEnd]
+			
+			else:
+				bodies = plotBodies
+				print(utils.colorPrint("\n\tError: invalid range, plotting all bodies", utils.bcolors.RED))
+		
+		else:
+			bodies = plotBodies
 
 		fig = plt.figure()
 		ax = fig.add_subplot(projection='3d')
@@ -80,7 +106,11 @@ def plot(bodies: list, sdOptions=[], ddOptions=[]):
 
 		ax.legend()
 
-		print(utils.colorPrint("\n\tShowing orbits for " + str(len(bodies)) + " bodies", utils.bcolors.GREEN))
+		if not rangeFlag:
+			print(utils.colorPrint("\n\tShowing orbits for " + str(len(bodies)) + " bodies", utils.bcolors.GREEN))
+		
+		else:
+			print(utils.colorPrint("\n\tShowing orbits for " + str(len(bodies)) + " bodies in range " + rangeString, utils.bcolors.GREEN))
 
 		if not instantPlot:
 			ani = animation.FuncAnimation(fig, updateLines, frames=framesNumber, fargs=(trajectories, lines, speed), interval=1, repeat=False)

@@ -97,7 +97,12 @@ while True: # interface
 					continue
 
 				for b in bodies:
-					print(utils.colorPrint("\n\tBody " + str(bodies.index(b)) + ", " + b.label + ": ", utils.bcolors.BLUE))
+					bodyLabel = ""
+
+					if b.label != "":
+						bodyLabel = ", " + b.label
+
+					print(utils.colorPrint("\n\tBody " + str(bodies.index(b)) + bodyLabel + ": ", utils.bcolors.BLUE))
 					print(b.__str__(bodies))
 				
 				continue
