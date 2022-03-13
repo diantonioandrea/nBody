@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-import os
-import numpy as np
-import colorama
+import os, sys
 
 # PHYSICS
 
@@ -14,29 +11,47 @@ import graphics
 # UTILS
 
 import utils
-colorama.init()
 
-
-bodies = []
-computedFlag = False
-
-if not os.path.exists(str(os.getcwd()) + "/data"):
-    os.makedirs(str(os.getcwd()) + "/data")
 
 print(utils.colorPrint("N-BODY", utils.bcolors.BLUE))
-print(utils.colorPrint("N-body orbits visualization program with CLI", utils.bcolors.BLUE))
+print(utils.colorPrint("N-body orbits computation visualization program with CLI written in Python", utils.bcolors.BLUE))
 print(utils.colorPrint("Developed by Andrea Di Antonio", utils.bcolors.BLUE))
 print(utils.colorPrint("\nType \'help\' if needed", utils.bcolors.BLUE))
 
 try:
+
+	if not os.path.exists(str(os.getcwd()) + "/data"):
+		os.makedirs(str(os.getcwd()) + "/data")
+	
+except:
+	print(utils.colorPrint("\n\tError: couldn't create \'data\' folder\n\tExited\n", utils.bcolors.RED))
+	sys.exit(-1)
+
+try:
 	user = os.getlogin()
+
+	if user == "":
+		user = "user"
 
 except:
 	user = "user"
 
+bodies = []
+computedFlag = False
+
 while True: # interface
 	try:
-		command = " ".join(input("\n" + user + "@N-BODY: ").split()).lower()
+		hostName = "N-BODY"
+		computedFlag = utils.checkOrbits(bodies)
+
+		try:
+			if len(bodies) > 0:
+				hostName = hostName.replace("N", str(len(bodies)))
+		
+		except:
+			pass
+
+		command = " ".join(input("\n" + user + "@" + hostName + ": ").split()).lower()
 		instructions = command.split(" ")
 
 		# OPTIONS, SINGLE DASH [[-key1, value1], ...] AND DOUBLE DASH [--key1, ...]
@@ -49,8 +64,13 @@ while True: # interface
 				if "--" in inst:
 					ddOpts.append(inst)
 				
-				elif "-" in inst and inst in ["-i", "-o", "-st", "-sp", "-t"]: # avoids negative numbers
-					sdOpts.append([inst, instructions[instructions.index(inst) + 1]])
+				elif "-" in inst:
+					try:
+						if type(float(inst)) == float: # avoids picking negative numbers
+							pass
+
+					except(ValueError):
+						sdOpts.append([inst, instructions[instructions.index(inst) + 1]])
 
 		except(IndexError):
 			print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))
@@ -61,12 +81,12 @@ while True: # interface
 			# EXIT PROGRAM
 
 			if instructions[0] in ["exit", "quit"]:
-				break
+				print(utils.colorPrint("\n\tExited", utils.bcolors.GREEN))
+				sys.exit(0)
 
 			# HELP
 
 			elif instructions[0] == "help":
-
 				utils.help()
 				continue
 
@@ -79,31 +99,14 @@ while True: # interface
 
 				for b in bodies:
 					print(utils.colorPrint("\n\tBody " + str(bodies.index(b)) + ": ", utils.bcolors.BLUE))
-					print(b)
-
-					if len(bodies) > 1:
-						print() # needed space
-						for db in bodies:
-							if b != db:
-								print("\tDistance from body " + str(bodies.index(db)) + ": " + str(round(b.distance(db), 4)))
+					print(b.__str__(bodies))
 				
 				continue
-
-			# PLOT COMPUTED ORBITS
-
-			elif instructions[0] == "show":
-				if not computedFlag:
-					print(utils.colorPrint("\n\tError: no computed orbits", utils.bcolors.RED))
-					continue
-
-				graphics.plot(bodies, sdOptions=sdOpts, ddOptions=ddOpts)
-				continue
-
+		
 			# CLEAR BODIES LIST
 
 			elif instructions[0] == "clear":
 				bodies = []
-				computedFlag = False
 				print(utils.colorPrint("\n\tCleared bodies list", utils.bcolors.GREEN))
 				continue
 
@@ -116,6 +119,26 @@ while True: # interface
 					bodies.append(newBody)
 				continue
 
+			# COMPUTE ORBITS
+
+			elif instructions[0] == "compute":
+				if len(bodies) < 2:
+					print(utils.colorPrint("\n\tError: not enough bodies", utils.bcolors.RED))
+					continue
+				
+				bodies = physics.computeOrbits(bodies, sdOptions=sdOpts, ddOptions=ddOpts)
+				continue
+
+			# PLOT COMPUTED ORBITS
+
+			elif instructions[0] == "show":
+				if not computedFlag:
+					print(utils.colorPrint("\n\tError: no computed orbits", utils.bcolors.RED))
+					continue
+
+				graphics.plot(bodies, sdOptions=sdOpts, ddOptions=ddOpts)
+				continue
+
 			# DUMP BODIES LIST TO A FILE
 			
 			elif instructions[0] == "dump":
@@ -125,19 +148,7 @@ while True: # interface
 			# LOAD BODIES LIST FROM A FILE
 				
 			elif instructions[0] == "load":
-				bodies = utils.load(sdOptions=sdOpts)
-				computedFlag = False
-				continue
-
-			# COMPUTE ORBITS
-
-			elif instructions[0] == "compute":
-				if len(bodies) < 2:
-					print(utils.colorPrint("\n\tError: not enough bodies", utils.bcolors.RED))
-					continue
-				
-				bodies = physics.computeOrbits(bodies, sdOptions=sdOpts, ddOptions=ddOpts)
-				computedFlag = True
+				bodies = utils.load(sdOptions=sdOpts, noneObject=[])
 				continue
 		
 		print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))

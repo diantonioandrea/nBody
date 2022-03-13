@@ -1,8 +1,8 @@
-import pickle
-import numpy as np
+import pickle, colorama
 
 # COLORS
 
+colorama.init()
 class bcolors:
 	GREEN = '\033[92m'
 	BLUE = '\033[94m'
@@ -26,6 +26,17 @@ def checkOptions(rOpts: list, sdOpts=[], ddOpts=[]):
 	
 	return True
 
+def checkOrbits(bodies: list):
+	try:
+		for b in bodies:
+			if len(b.trajectory) > 1:
+				return True
+	
+	except:
+		pass
+
+	return False
+
 def dump(tbDumped, sdOptions=[]):
 	rOptions = ["-o"]
 
@@ -42,7 +53,7 @@ def dump(tbDumped, sdOptions=[]):
 			path = opts[1]
 
 	try:
-		dumpFile = open("data/" + filename, "wb")
+		dumpFile = open(path + filename, "wb")
 	
 	except(FileNotFoundError):
 		print(colorPrint("\n\tError: file or directory not found", bcolors.RED))
@@ -53,7 +64,7 @@ def dump(tbDumped, sdOptions=[]):
 
 	print(colorPrint("\n\tDumped data to file: " + filename, bcolors.GREEN))
 
-def load(sdOptions=[]):
+def load(sdOptions=[], noneObject=None):
 	rOptions = ["-i"]
 
 	if not checkOptions(rOptions, sdOpts=sdOptions):
@@ -69,11 +80,11 @@ def load(sdOptions=[]):
 			path = opts[1]
 
 	try:
-		loadFile = open("data/" + filename, "rb")
+		loadFile = open(path + filename, "rb")
 	
 	except(FileNotFoundError):
 		print(colorPrint("\n\tError: file or directory not found", bcolors.RED))
-		return None
+		return noneObject
 
 	loadContent = pickle.load(loadFile)
 	loadFile.close()
@@ -83,6 +94,8 @@ def load(sdOptions=[]):
 	return loadContent
 
 def help():
+	print(colorPrint("\n\tN-BODY HELP", bcolors.BLUE))
+
 	print(colorPrint("\n\texit, quit", bcolors.BLUE))
 	print("\t\tExits from program")
 
@@ -98,24 +111,24 @@ def help():
 	print(colorPrint("\n\tcompute", bcolors.BLUE))
 	print("\t\tComputes orbits")
 	print("\n\t\tAvailable options:")
-	print("\n\t\t-t N: sets N as computation time, " + colorPrint("required", bcolors.RED))
-	print("\t\t-st N: sets N as steps number, " + colorPrint("required", bcolors.RED))
+	print("\n\t\t-t N, time: sets N as computation time, " + colorPrint("required", bcolors.RED))
+	print("\t\t-st N, steps: sets N as steps number, " + colorPrint("required", bcolors.RED))
 
 	print(colorPrint("\n\tshow", bcolors.BLUE))
 	print("\t\tPlots computed orbits")
 	print("\n\t\tAvailable options:")
 	print("\n\t\t--now: instantly plots computed orbits, ignores other options")
-	print("\t\t-sp N: sets N as plotting speed")
+	print("\t\t-sp N, speed: sets N as plotting speed")
 
 	print(colorPrint("\n\tdump", bcolors.BLUE))
 	print("\t\tDumps current bodies to a specified file")
 	print("\n\t\tAvailable options:")
-	print("\n\t\t-o FILENAME: specifies file, " + colorPrint("required", bcolors.RED))
-	print("\t\t-p PATH: sets PATH as PATH/FILENAME")
+	print("\n\t\t-o FILENAME, output: specifies file without any extensions, " + colorPrint("required", bcolors.RED))
+	print("\t\t-p PATH, path: sets PATH as PATH/FILENAME")
 
 	print(colorPrint("\n\tload", bcolors.BLUE))
 	print("\t\tLoads bodies from a specified file previously dumped")
 	print("\n\t\tAvailable options:")
-	print("\n\t\t-i FILENAME: specifies file, " + colorPrint("required", bcolors.RED))
-	print("\t\t-p PATH: sets PATH as PATH/FILENAME")
+	print("\n\t\t-i FILENAME, input: specifies file without any extensions, " + colorPrint("required", bcolors.RED))
+	print("\t\t-p PATH, path: sets PATH as PATH/FILENAME")
 	

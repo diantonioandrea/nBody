@@ -1,7 +1,7 @@
 import numpy as np
 import time
 
-from utils import checkOptions, colorPrint, bcolors
+import utils
 
 class body:
 
@@ -12,7 +12,7 @@ class body:
 			self.mass = float(input("\n\tMass, M: "))
 
 			if self.mass < 0:
-				print(colorPrint("\n\tNegative mass will repulse positive mass", bcolors.GREEN))
+				print(utils.colorPrint("\n\tPay attention with negative masses", utils.bcolors.CYAN))
 
 			pos = np.array([.0, .0, .0])
 			spd = np.array([.0, .0, .0])
@@ -28,29 +28,46 @@ class body:
 			self.coordinates = np.array([pos, spd])
 			self.trajectory = np.array([pos])
 
-			print(colorPrint("\n\tNew body created", bcolors.GREEN))
+			print(utils.colorPrint("\n\tNew body created", utils.bcolors.GREEN))
 
 		except(ValueError):
-			print(colorPrint("\n\tError: value error", bcolors.RED))
+			print(utils.colorPrint("\n\tError: value error", utils.bcolors.RED))
 			self.creationFlag = False
 
 		except(KeyboardInterrupt):
 			print() # needed space
-			print(colorPrint("\n\tCancelled", bcolors.RED))
+			print(utils.colorPrint("\n\tCancelled", utils.bcolors.RED))
 			self.creationFlag = False
 
 		except(EOFError):
-			print(colorPrint("\n\tCancelled", bcolors.RED))
+			print(utils.colorPrint("\n\tCancelled", utils.bcolors.RED))
 			self.creationFlag = False
 
 		except:
-			print(colorPrint("\n\tError", bcolors.RED))
+			print(utils.colorPrint("\n\tError", utils.bcolors.RED))
 			self.creationFlag = False
 	
-	def __str__(self) -> str:
+	def __str__(self, others=[]) -> str:
 		selfString = "\n\tMass, M: " + str(self.mass)
-		selfString += "\n\tPosition, X: " + str(self.coordinates[0])
-		selfString += "\n\tSpeed, S: " + str(self.coordinates[1]) + " -> " + str(round(np.linalg.norm(self.coordinates[1]), 4))
+
+		selfString += "\n\tPosition, X: "
+
+		for x in self.coordinates[0]:
+			selfString += str(round(x, 4)) + " "
+
+		selfString += "\n\tSpeed, S: "
+
+		for s in self.coordinates[1]:
+			selfString += str(round(s, 4)) + " "
+		
+		selfString += "-> " + str(round(np.linalg.norm(self.coordinates[1]), 4))
+
+		if len(others) > 1:
+			selfString += "\n"
+
+			for ob in others:
+				if self != ob:
+					selfString += "\n\tDistance from body " + str(others.index(ob)) + ": " + str(round(self.distance(ob), 4))
 
 		return selfString
 
@@ -69,7 +86,7 @@ def newton(fb: body, sb: body) -> np.array:
 def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 	rOptions = ["-t", "-st"] # requires time and steps
 
-	if not checkOptions(rOptions, sdOpts=sdOptions, ddOpts=ddOptions):
+	if not utils.checkOptions(rOptions, sdOpts=sdOptions, ddOpts=ddOptions):
 		return bodies
 
 	# OPTIONS LOADING
@@ -83,20 +100,20 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 				computeTime = float(opts[1])
 		
 		except(ValueError):
-			print(colorPrint("\n\tError: no computed orbits", bcolors.RED))
+			print(utils.colorPrint("\n\tError: no computed orbits", utils.bcolors.RED))
 			return bodies
 
 	if stepsNumber == 0:
-		print(colorPrint("\n\tError: steps error", bcolors.RED))
+		print(utils.colorPrint("\n\tError: steps error", utils.bcolors.RED))
 		return bodies
 
 	stepsSize = computeTime / stepsNumber
 	forceArray = np.zeros_like(np.arange(3 * len(bodies)).reshape(len(bodies), 3), dtype=float)
 
 	if stepsSize < 0:
-		print(colorPrint("\n\tComputing (backwards) " + str(stepsNumber) + " steps with size " + str(abs(stepsSize)) + " for " + str(len(bodies)) + " bodies...", bcolors.GREEN))
+		print(utils.colorPrint("\n\tComputing (backwards) " + str(stepsNumber) + " steps with size " + str(abs(stepsSize)) + " for " + str(len(bodies)) + " bodies...", utils.bcolors.GREEN))
 	else:
-		print(colorPrint("\n\tComputing " + str(stepsNumber) + " steps with size " + str(stepsSize) + " for " + str(len(bodies)) + " bodies...", bcolors.GREEN))
+		print(utils.colorPrint("\n\tComputing " + str(stepsNumber) + " steps with size " + str(stepsSize) + " for " + str(len(bodies)) + " bodies...", utils.bcolors.GREEN))
 
 	computeStart = time.time()
 
@@ -114,17 +131,22 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 
 		computeEnd = time.time()
 		
-		print(colorPrint("\tDone, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", bcolors.GREEN))
+		print(utils.colorPrint("\tDone, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", utils.bcolors.GREEN))
 
 	except(KeyboardInterrupt):
 		computeEnd = time.time()
 		print() # needed space
-		print(colorPrint("\tStopped, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", bcolors.RED))
-		print(colorPrint("\t" + str(steps) + " steps evaluated", bcolors.RED))
+		print(utils.colorPrint("\tStopped, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", utils.bcolors.RED))
+		print(utils.colorPrint("\t" + str(steps) + " steps evaluated", utils.bcolors.RED))
 
 	except(EOFError):
 		computeEnd = time.time()
-		print(colorPrint("\tStopped, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", bcolors.RED))
-		print(colorPrint("\t" + str(steps) + " steps evaluated", bcolors.RED))
+		print(utils.colorPrint("\tStopped, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", utils.bcolors.RED))
+		print(utils.colorPrint("\t" + str(steps) + " steps evaluated", utils.bcolors.RED))
+
+	except(ZeroDivisionError):
+		computeEnd = time.time()
+		print(utils.colorPrint("\tOverlapped bodies, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", utils.bcolors.RED))
+		print(utils.colorPrint("\t" + str(steps) + " steps evaluated", utils.bcolors.RED))
 
 	return bodies
