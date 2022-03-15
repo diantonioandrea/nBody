@@ -177,7 +177,7 @@ def help():
 	print("\n\t\tAvailable options:")
 	print("\n\t\t-t N, time: sets N as computation time, " + colorPrint("required", bcolors.RED))
 	print("\t\t-st N, steps: sets N as steps number, " + colorPrint("required", bcolors.RED))
-	print("\t\t-par N: sets N as number of jobs for parallel computing, " + colorPrint("work in progress", bcolors.RED))
+	print("\t\t--parallel: uses parallel computing")
 
 	print(colorPrint("\n\tshow", bcolors.BLUE))
 	print("\t\tPlots computed orbits")

@@ -142,7 +142,10 @@ def newton(fb: body, sb: body) -> np.array:
 
 	return fb.mass * sb.mass / (fb.distance(sb) ** 3) * (sb.coordinates[0] - fb.coordinates[0])
 
-def evaluateForce(index: int, bodies: list) -> np.array:
+def evaluateForce(forceArgs: tuple) -> np.array: # uses a tuple for multiprocessing -> forceArgs = (index, bodies)
+
+	index = forceArgs[0]
+	bodies = forceArgs[1]
 
 	# EVALUATE TOTAL FORCE ON ONE BODY
 
@@ -166,7 +169,6 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 	# DEFAULTS
 
 	parallelFlag = False
-	parJobs = -1
 
 	# ORBITS
 
@@ -184,14 +186,14 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 
 			elif opts[0] == "-t": # computation time
 				computeTime = float(opts[1])
-			
-			elif opts[0] == "-par": # parallel computing
-				parallelFlag = True
-				parJobs = abs(int(opts[1]))
 		
 		except(ValueError):
 			print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))
 			return errorReturn
+	
+	for opts in ddOptions:
+		if opts == "--parallel":
+			parallelFlag = True
 
 	if stepsNumber == 0:
 		print(utils.colorPrint("\n\tError: steps error", utils.bcolors.RED))
@@ -214,25 +216,18 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 		# PARALLEL COMPUTING
 
 		if parallelFlag:
-			print(utils.colorPrint("\tUsing parallel computing with " + str(parJobs) + " jobs", utils.bcolors.GREEN))
+			print(utils.colorPrint("\tUsing parallel computing", utils.bcolors.GREEN))
+			workers = min([len(bodies), multiprocessing.cpu_count()])
 
-			with multiprocessing.Pool(parJobs) as parallelPool:
+			with multiprocessing.Pool(workers) as parallelPool: # automatic selection of processes count
 				for steps in range(stepsNumber):
-					forceArray = parallelPool.map(evaluateForce, [(index, bodies) for index in indexes])
+					forceArray = parallelPool.map(evaluateForce, [(index, bodies) for index in indexes], chunksize=int(len(bodies) / workers))
 
-				for k in indexes:
-					orbits[k].update(bodies[k].update(forceArray[k], stepsSize))
+					for k in indexes:
+						orbits[k].update(bodies[k].update(forceArray[k], stepsSize))
 
 				computeEnd = time.time()
-
-			# with joblib.Parallel(n_jobs=parJobs) as parallelPool:
-			# 	for steps in range(stepsNumber):
-			# 		forceArray = parallelPool(joblib.delayed(evaluateForce)(index, bodies) for index in indexes)
-
-			# 	for k in indexes:
-			# 		orbits[k].update(bodies[k].update(forceArray[k], stepsSize))
-
-			# 	computeEnd = time.time()
+				parallelPool.close()
 		
 		else:
 
@@ -242,7 +237,7 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 
 			for steps in range(stepsNumber):
 				for i in indexes:
-					forceArray[i] += evaluateForce(i, bodies)
+					forceArray[i] += evaluateForce((i, bodies))
 					
 				for k in indexes:
 					orbits[k].update(bodies[k].update(forceArray[k], stepsSize))
