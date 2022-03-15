@@ -90,6 +90,8 @@ class body:
 		for x in self.coordinates[0]:
 			selfString += str(round(x, 4)) + " "
 
+		selfString += "-> " + str(round(np.linalg.norm(self.coordinates[0]), 4))
+
 		selfString += "\n\t\tSpeed, S: "
 
 		for s in self.coordinates[1]:

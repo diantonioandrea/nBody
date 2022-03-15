@@ -4,6 +4,7 @@ build
 data
 dist
 __pycache__
+utils
 
 # files
 
