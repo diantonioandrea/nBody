@@ -1,4 +1,4 @@
-import joblib, time
+import joblib, time, multiprocessing
 import numpy as np
 
 import utils
@@ -216,15 +216,23 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 		if parallelFlag:
 			print(utils.colorPrint("\tUsing parallel computing with " + str(parJobs) + " jobs", utils.bcolors.GREEN))
 
-			with joblib.Parallel(n_jobs=parJobs) as parallelPool:
-
+			with multiprocessing.Pool(parJobs) as parallelPool:
 				for steps in range(stepsNumber):
-					forceArray = parallelPool(joblib.delayed(evaluateForce)(index, bodies) for index in indexes)
+					forceArray = parallelPool.map(evaluateForce, [(index, bodies) for index in indexes])
 
 				for k in indexes:
 					orbits[k].update(bodies[k].update(forceArray[k], stepsSize))
 
 				computeEnd = time.time()
+
+			# with joblib.Parallel(n_jobs=parJobs) as parallelPool:
+			# 	for steps in range(stepsNumber):
+			# 		forceArray = parallelPool(joblib.delayed(evaluateForce)(index, bodies) for index in indexes)
+
+			# 	for k in indexes:
+			# 		orbits[k].update(bodies[k].update(forceArray[k], stepsSize))
+
+			# 	computeEnd = time.time()
 		
 		else:
 

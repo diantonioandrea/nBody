@@ -188,15 +188,15 @@ def help():
 	print("\t\t--now: instantly plots computed orbits, ignores -sp")
 
 	print(colorPrint("\n\tdump", bcolors.BLUE))
-	print("\t\tDumps current bodies to a specified file")
+	print("\t\tDumps current bodies and orbits to a specified file")
 	print("\n\t\tAvailable options:")
 	print("\n\t\t-o FILENAME, output: specifies file without any extensions, " + colorPrint("required", bcolors.RED))
 	print("\t\t-p PATH, path: sets PATH as PATH/FILENAME")
 
 	print(colorPrint("\n\tload", bcolors.BLUE))
-	print("\t\tLoads bodies from a specified file previously dumped")
+	print("\t\tLoads bodies (and orbits, .pck) from a specified file")
 	print("\n\t\tAvailable options:")
 	print("\n\t\t-i FILENAME, input: specifies file without any extensions, " + colorPrint("required", bcolors.RED))
 	print("\t\t-p PATH, path: sets PATH as PATH/FILENAME")
-	print("\t\t--csv: loads a .csv file with line format M,X1,X2,X3,S1,S2,S3(,LABEL)")
+	print("\t\t--csv: loads a .csv file with line format M,X1,X2,X3,S1,S2,S3(,LABEL), " + colorPrint("only bodies", bcolors.RED))
 	
