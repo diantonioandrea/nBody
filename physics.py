@@ -6,12 +6,14 @@ import utils
 
 class body:
 
+	# BODY
+
 	def __init__(self, csvLine=""):
 		self.creationFlag = True
 
 		if csvLine != "": # creates body from a .csv file
 
-			# FORMAT: M,X0,X1,X2,S0,S1,S2(,LABEL)
+			# FORMAT: M,X1,X2,X3,S1,S2,S3(,LABEL)
 
 			csvData = csvLine.split(",")
 
@@ -23,12 +25,8 @@ class body:
 
 				self.coordinates = np.array([pos, spd])
 
-			except(IndexError):
+			except(IndexError, ValueError):
 				print(utils.colorPrint("\n\tError: csv error", utils.bcolors.RED))
-				self.creationFlag = False
-
-			except(ValueError):
-				print(utils.colorPrint("\n\tError: value error, check csv file", utils.bcolors.RED))
 				self.creationFlag = False
 
 			except:
@@ -77,27 +75,28 @@ class body:
 			except(EOFError):
 				print(utils.colorPrint("\n\tCancelled", utils.bcolors.RED))
 				self.creationFlag = False
-
-			except:
-				print(utils.colorPrint("\n\tError: unknown error", utils.bcolors.RED))
-				self.creationFlag = False
 	
 	def __str__(self, others=[]) -> str:
+
+		# BODY -> STRING
+
 		selfString = "\n\t\tMass, M: " + str(self.mass)
 
-		selfString += "\n\t\tPosition, X: "
+		# POSITION: X1 X2 X3 -> ||X||
 
+		selfString += "\n\t\tPosition, X: "
 		for x in self.coordinates[0]:
 			selfString += str(round(x, 4)) + " "
-
 		selfString += "-> " + str(round(np.linalg.norm(self.coordinates[0]), 4))
 
-		selfString += "\n\t\tSpeed, S: "
+		# SPEED: S1 S2 S3 -> ||S||
 
+		selfString += "\n\t\tSpeed, S: "
 		for s in self.coordinates[1]:
 			selfString += str(round(s, 4)) + " "
-		
 		selfString += "-> " + str(round(np.linalg.norm(self.coordinates[1]), 4))
+
+		# DISTANCE FROM OTHER BODIES
 
 		if len(others) > 1:
 			selfString += "\n"
@@ -109,16 +108,28 @@ class body:
 		return selfString
 
 	def distance(self, other) -> float:
+
+		# COMPUTES DISTANCE FROM ANOTHER BODY
+
 		return np.linalg.norm(self.coordinates[0] - other.coordinates[0])
 
 	def update(self, force: np.array, dt: float) -> np.array:
+
+		# UPDATES SELF COORDINATES BASED ON FORCE AND A "SMALL" TIME INTERVAL, THEN RETURNS NEW POSITION
+
 		self.coordinates[1] += force / self.mass * dt
 		self.coordinates[0] += self.coordinates[1] * dt
 
 		return self.coordinates[0]
 
 class orbit:
+
+	# CLASS
+
 	def __init__(self, bodyOrbit: body):
+
+		# COPIES A BODY POSITION AND LABEL
+
 		self.trajectory = bodyOrbit.coordinates[0]
 		self.label = bodyOrbit.label
 	
@@ -126,9 +137,15 @@ class orbit:
 		self.trajectory = np.vstack([self.trajectory, newStep])
 
 def newton(fb: body, sb: body) -> np.array:
+
+	# COMPUTES NEWTON FORCE BETWEEN TWO BODIES
+
 	return fb.mass * sb.mass / (fb.distance(sb) ** 3) * (sb.coordinates[0] - fb.coordinates[0])
 
 def evaluateForce(index: int, bodies: list) -> np.array:
+
+	# EVALUATE TOTAL FORCE ON ONE BODY
+
 	force = np.array([.0, .0, .0])
 
 	for j in range(len(bodies)):
@@ -138,6 +155,9 @@ def evaluateForce(index: int, bodies: list) -> np.array:
 	return force
 
 def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
+
+	# COMPUTES ORBITS OF N BODIES
+
 	rOptions = ["-t", "-st"] # requires time and steps
 
 	if not utils.checkOptions(rOptions, sdOpts=sdOptions, ddOpts=ddOptions):
@@ -177,6 +197,8 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 		print(utils.colorPrint("\n\tError: steps error", utils.bcolors.RED))
 		return errorReturn
 
+	# EVALUATES STEPS SIZE WITH POSSIBILITY OF BACKWARD COMPUTING
+
 	stepsSize = computeTime / stepsNumber
 
 	if stepsSize < 0:
@@ -188,6 +210,9 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 	computeStart = time.time()
 
 	try:
+
+		# PARALLEL COMPUTING
+
 		if parallelFlag:
 			print(utils.colorPrint("\tUsing parallel computing with " + str(parJobs) + " jobs", utils.bcolors.GREEN))
 
@@ -202,6 +227,9 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 				computeEnd = time.time()
 		
 		else:
+
+			# "SINGLE CORE" COMPUTING
+
 			forceArray = np.zeros_like(np.arange(3 * len(bodies)).reshape(len(bodies), 3), dtype=float)
 
 			for steps in range(stepsNumber):

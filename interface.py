@@ -14,7 +14,7 @@ import utils
 
 
 print(utils.colorPrint("N-BODY", utils.bcolors.BLUE))
-print(utils.colorPrint("N-body orbits computation visualization program with CLI written in Python", utils.bcolors.BLUE))
+print(utils.colorPrint("N-body orbits computation and visualization program with CLI written in Python", utils.bcolors.BLUE))
 print(utils.colorPrint("Developed by Andrea Di Antonio", utils.bcolors.BLUE))
 print(utils.colorPrint("\nType \'help\' if needed", utils.bcolors.BLUE))
 
