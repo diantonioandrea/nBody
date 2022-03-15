@@ -122,6 +122,10 @@ def help():
 
 	print(colorPrint("\n\tclear", bcolors.BLUE))
 	print("\t\tClears current bodies")
+	print("\n\t\tAvailable options:")
+	print("\n\t\t--orbits: clears orbits list")
+	print("\t\t--bodies: clears bodies list")
+	print("\t\t--all: clears both bodies and orbits list")
 
 	print(colorPrint("\n\tnew", bcolors.BLUE))
 	print("\t\tCreates a new body")
@@ -131,7 +135,7 @@ def help():
 	print("\n\t\tAvailable options:")
 	print("\n\t\t-t N, time: sets N as computation time, " + colorPrint("required", bcolors.RED))
 	print("\t\t-st N, steps: sets N as steps number, " + colorPrint("required", bcolors.RED))
-	print("\t\t--parallel: uses parallel computing, " + colorPrint("NOT WORKING PROPERLY", bcolors.RED))
+	print("\t\t-par N: sets N as number of jobs for parallel computing, " + colorPrint("work in progress", bcolors.RED))
 
 	print(colorPrint("\n\tshow", bcolors.BLUE))
 	print("\t\tPlots computed orbits")

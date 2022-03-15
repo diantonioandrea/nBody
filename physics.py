@@ -22,7 +22,6 @@ class body:
 				spd = np.array([float(csvData[4]), float(csvData[5]), float(csvData[6])])
 
 				self.coordinates = np.array([pos, spd])
-				self.trajectory = np.array([pos])
 
 			except(IndexError):
 				print(utils.colorPrint("\n\tError: csv error", utils.bcolors.RED))
@@ -61,7 +60,6 @@ class body:
 					spd[s] = float(input("\tSpeed, S_" + str(s + 1) + ": "))
 
 				self.coordinates = np.array([pos, spd])
-				self.trajectory = np.array([pos])
 
 				self.label = str(input("\n\tLabel (can be empty): "))
 
@@ -111,11 +109,19 @@ class body:
 	def distance(self, other) -> float:
 		return np.linalg.norm(self.coordinates[0] - other.coordinates[0])
 
-	def update(self, force: np.array, dt: float):
+	def update(self, force: np.array, dt: float) -> np.array:
 		self.coordinates[1] += force / self.mass * dt
 		self.coordinates[0] += self.coordinates[1] * dt
 
-		self.trajectory = np.vstack([self.trajectory, self.coordinates[0]])
+		return self.coordinates[0]
+
+class orbit:
+	def __init__(self, bodyOrbit: body):
+		self.trajectory = bodyOrbit.coordinates[0]
+		self.label = bodyOrbit.label
+	
+	def update(self, newStep: np.array):
+		self.trajectory = np.vstack([self.trajectory, newStep])
 
 def newton(fb: body, sb: body) -> np.array:
 	return fb.mass * sb.mass / (fb.distance(sb) ** 3) * (sb.coordinates[0] - fb.coordinates[0])
@@ -129,15 +135,23 @@ def evaluateForce(index: int, bodies: list) -> np.array:
 
 	return force
 
-def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
+def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 	rOptions = ["-t", "-st"] # requires time and steps
 
 	if not utils.checkOptions(rOptions, sdOpts=sdOptions, ddOpts=ddOptions):
-		return bodies
+		return errorReturn
 
 	# DEFAULTS
 
 	parallelFlag = False
+	parJobs = -1
+
+	# ORBITS
+
+	orbits = errorReturn
+
+	for k in range(len(bodies)):
+		orbits.append(orbit(bodies[k]))
 
 	# OPTIONS LOADING
 
@@ -148,18 +162,18 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 
 			elif opts[0] == "-t": # computation time
 				computeTime = float(opts[1])
+			
+			elif opts[0] == "-par": # parallel computing
+				parallelFlag = True
+				parJobs = abs(int(opts[1]))
 		
 		except(ValueError):
 			print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))
-			return bodies
-
-	for opts in ddOptions:
-		if opts == "--parallel":
-			parallelFlag = True
+			return errorReturn
 
 	if stepsNumber == 0:
 		print(utils.colorPrint("\n\tError: steps error", utils.bcolors.RED))
-		return bodies
+		return errorReturn
 
 	stepsSize = computeTime / stepsNumber
 
@@ -172,18 +186,16 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 	computeStart = time.time()
 
 	try:
-
 		if parallelFlag:
-			print(utils.colorPrint("\tUsing parallel computing", utils.bcolors.GREEN))
+			print(utils.colorPrint("\tUsing parallel computing with " + str(parJobs) + " jobs", utils.bcolors.GREEN))
 
-			with joblib.Parallel(n_jobs=len(bodies)) as parallel:
+			with joblib.Parallel(n_jobs=parJobs) as parallelPool:
 
 				for steps in range(stepsNumber):
-					forceArray = parallel(joblib.delayed(evaluateForce)(index, bodies) for index in indexes)
-						
-					for k in indexes:
-						bodies[k].update(forceArray[k], stepsSize)
-						forceArray[k] *= .0 # forceArray "reset"
+					forceArray = parallelPool(joblib.delayed(evaluateForce)(index, bodies) for index in indexes)
+
+				for k in indexes:
+					orbits[k].update(bodies[k].update(forceArray[k], stepsSize))
 
 				computeEnd = time.time()
 		
@@ -195,7 +207,7 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 					forceArray[i] += evaluateForce(i, bodies)
 					
 				for k in indexes:
-					bodies[k].update(forceArray[k], stepsSize)
+					orbits[k].update(bodies[k].update(forceArray[k], stepsSize))
 					forceArray[k] *= .0 # forceArray "reset"
 
 			computeEnd = time.time()
@@ -218,4 +230,4 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[]):
 		print(utils.colorPrint("\tOverlapped bodies, elapsed time: " + str(round(computeEnd - computeStart, 4)) + " seconds", utils.bcolors.RED))
 		print(utils.colorPrint("\t" + str(steps) + " steps evaluated", utils.bcolors.RED))
 
-	return bodies
+	return orbits

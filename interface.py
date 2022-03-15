@@ -37,12 +37,13 @@ except:
 	user = "user"
 
 bodies = []
+orbits = []
 computedFlag = False
 
 while True: # interface
 	try:
 		hostName = "N-BODY"
-		computedFlag = utils.checkOrbits(bodies)
+		computedFlag = len(orbits) > 0
 
 		try:
 			if len(bodies) > 0:
@@ -66,7 +67,7 @@ while True: # interface
 				
 				elif "-" in inst:
 					try:
-						if type(float(inst)) == float: # avoids picking negative numbers
+						if type(float(inst)) == float: # avoids passing negative numbers as options
 							pass
 
 					except(ValueError):
@@ -110,9 +111,22 @@ while True: # interface
 			# CLEAR BODIES LIST
 
 			elif instructions[0] == "clear":
-				bodies = []
-				print(utils.colorPrint("\n\tCleared bodies list", utils.bcolors.GREEN))
-				continue
+				if "--all" in ddOpts:
+					bodies = []
+					orbits = []
+					print(utils.colorPrint("\n\tCleared bodies and orbits list", utils.bcolors.GREEN))
+					continue
+				
+				elif "--orbits" in ddOpts or "--bodies" in ddOpts:
+					if "--orbits" in ddOpts:
+						orbits = []
+						print(utils.colorPrint("\n\tCleared orbits list", utils.bcolors.GREEN))
+
+					if "--bodies" in ddOpts:
+						orbits = []
+						print(utils.colorPrint("\n\tCleared bodies list", utils.bcolors.GREEN))
+				
+					continue
 
 			# CREATE A NEW BODY
 		
@@ -130,7 +144,7 @@ while True: # interface
 					print(utils.colorPrint("\n\tError: not enough bodies", utils.bcolors.RED))
 					continue
 				
-				bodies = physics.computeOrbits(bodies, sdOptions=sdOpts, ddOptions=ddOpts)
+				orbits = physics.computeOrbits(bodies, sdOptions=sdOpts, ddOptions=ddOpts, errorReturn=orbits)
 				continue
 
 			# PLOT COMPUTED ORBITS
@@ -140,34 +154,36 @@ while True: # interface
 					print(utils.colorPrint("\n\tError: no computed orbits", utils.bcolors.RED))
 					continue
 
-				graphics.plot(bodies, sdOptions=sdOpts, ddOptions=ddOpts)
+				graphics.plot(orbits, sdOptions=sdOpts, ddOptions=ddOpts)
 				continue
 
 			# DUMP BODIES LIST TO A .pck FILE
 			
 			elif instructions[0] == "dump":
-				utils.dump(bodies, sdOptions=sdOpts) # dumps to a .pck file
+				utils.dump([bodies, orbits], sdOptions=sdOpts) # dumps to a .pck file
 				continue
 
 			# LOAD BODIES LIST FROM A .pck OR .csv FILE
 				
 			elif instructions[0] == "load":
-				loadBodies, loadExt = utils.load(sdOptions=sdOpts, ddOptions=ddOpts, noneObject=[])
+				loadContent, loadExt = utils.load(sdOptions=sdOpts, ddOptions=ddOpts, noneObject=[[], []])
 
 				if loadExt == ".pck":
-					bodies = loadBodies
+					bodies = loadContent[0]
+					orbits = loadContent[1]
 
 				elif loadExt == ".csv":
 					bodies = []
+					orbits = []
 
-					for csvLines in loadBodies:
+					for csvLines in loadContent:
 						newBody = physics.body(csvLines)
 
 						if newBody.creationFlag:
 							bodies.append(newBody)
 				
-				if len(loadBodies) > 0:
-					print(utils.colorPrint("\tLoaded " + str(len(loadBodies)) + " bodies", utils.bcolors.GREEN))
+				if len(bodies) > 0:
+					print(utils.colorPrint("\tLoaded " + str(len(bodies)) + " bodies", utils.bcolors.GREEN))
 				continue
 		
 		print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))
