@@ -3,15 +3,16 @@ import matplotlib.animation as animation
 
 import utils
 
-# PLOTS
 
 def updateLines(num: int, trajectories: list, lines: list, speed: int) -> list:
 
-	# UPDATE LINES BY "SPEED" AT A TIME
+	num *= speed
+
+	# UPDATE LINES
 
 	for line, trajectory in zip(lines, trajectories):
-		line.set_data(trajectory[:num * speed, :2].T)
-		line.set_3d_properties(trajectory[:num * speed, 2])
+		line.set_data(trajectory[:num, :2].T)
+		line.set_3d_properties(trajectory[:num, 2])
 
 	return lines
 
@@ -37,10 +38,21 @@ def findLimits(orbits: list, axis: int) -> tuple:
 	return (minValue, maxValue)
 
 def plot(plotOrbits: list, sdOptions=[], ddOptions=[]) -> None:
-	# DEFAULTS
+
+	# -sp OPTION
 
 	speed = 1
+
+	# -sk OPTION
+
+	skips = 1
+
+	# --now OPTION
+
 	instantPlot = False
+
+	# -rn OPTION
+
 	rangeFlag = False
 	rangeString = ""
 	rStart = 0
@@ -52,7 +64,21 @@ def plot(plotOrbits: list, sdOptions=[], ddOptions=[]) -> None:
 		try:
 			if opts[0] == "-sp": # speed
 				speed = abs(int(opts[1]))
-				print(utils.colorPrint("\n\tSpeed set with value: " + str(speed), utils.bcolors.GREEN))
+
+				if speed != 0:
+					print(utils.colorPrint("\n\tSpeed set with value: " + str(speed), utils.bcolors.GREEN))
+
+				else:
+					speed = 1
+			
+			elif opts[0] == "-sk": # skips
+				skips = abs(int(opts[1]))
+
+				if skips != 0:
+					print(utils.colorPrint("\n\tSkips set with value: " + str(skips), utils.bcolors.GREEN))
+
+				else:
+					skips = 1
 
 		except(ValueError):
 			print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))
@@ -66,11 +92,13 @@ def plot(plotOrbits: list, sdOptions=[], ddOptions=[]) -> None:
 				rangeFlag = True
 			
 			except(IndexError, ValueError):
-				print(utils.colorPrint("\n\tError: syntax error, plotting all orbits", utils.bcolors.RED))
+				print(utils.colorPrint("\n\tError: error within range definition, plotting all orbits", utils.bcolors.RED))
 
 	for opts in ddOptions:
-		if opts == "--now": # FAST PLOTTING
+		if opts == "--now": # instant plotting
 			instantPlot = True
+
+	# CHECKING RANGES
 
 	if rangeFlag:
 		if 0 <= rStart < len(plotOrbits) and 0 < rEnd <= len(plotOrbits) and rStart < rEnd:
@@ -78,28 +106,54 @@ def plot(plotOrbits: list, sdOptions=[], ddOptions=[]) -> None:
 		
 		else:
 			orbits = plotOrbits
+			rangeFlag = False
 			print(utils.colorPrint("\n\tError: invalid range, plotting all orbits", utils.bcolors.RED))
 	
 	else:
 		orbits = plotOrbits
 
+	# DEFINING TRAJECTORIES IN A SEPARATED LIST TO AVOID MODIFICATIONS TO ORIGINAL ORBITS
+
+	trajectories = [[]] * len(orbits)
+	
+	for j in range(len(orbits)):
+		if skips == 1:
+			trajectories[j] = orbits[j].trajectory
+		
+		else:
+			trajectories[j] = utils.skipStack(orbits[j].trajectory, skips)
+
+	# PLOT TITLE BASED ON NUMBER OF BODIES AND PPB (points-per-body)
+
+	titleString = "N-body problem with " + str(len(orbits)) + " orbits"
+	titleString += "\nShowing " + str(len(trajectories[0])) + " ppb"
+
+	# FIGURE DEFINITION
+
 	fig = plt.figure()
 	ax = fig.add_subplot(projection='3d')
-	ax.set_title('N-body problem with ' + str(len(orbits)) + ' orbits')
+	ax.set_title(titleString)
+
+	# SETTING PLOT LIMITS 
 
 	ax.set(xlim3d=findLimits(orbits, 0), xlabel='X')
 	ax.set(ylim3d=findLimits(orbits, 1), ylabel='Y')
 	ax.set(zlim3d=findLimits(orbits, 2), zlabel='Z')
 
 	if not instantPlot:
-		trajectories = [b.trajectory for b in orbits]
-		lines = [ax.plot([], [], [])[0] for _ in trajectories]
+		# DEFINING LINES FOR ANIMATED PLOT
 
-		framesNumber = int(len(orbits[0].trajectory) / speed)
+		lines = [ax.plot([], [], [])[0] for _ in trajectories]
+		framesNumber = int(len(trajectories[0]) / speed)
 
 	else:
-		for b in orbits:
-			ax.plot3D(b.trajectory[:, 0], b.trajectory[:, 1], b.trajectory[:, 2])
+		# DRAWING LINES FOR INSTANT PLOT
+
+		for t in trajectories:
+			ax.plot3D(t[:, 0], t[:, 1], t[:, 2])
+
+	# ADDING LABELS TO LINES
+	# "BODY N" IF THERE IS NO LABEL
 
 	for l in ax.lines:
 		if orbits[ax.lines.index(l)].label == "":
@@ -108,13 +162,19 @@ def plot(plotOrbits: list, sdOptions=[], ddOptions=[]) -> None:
 		else:
 			l.set_label(orbits[ax.lines.index(l)].label)
 
+	# GENERATING LEGEND
+
 	ax.legend()
+
+	# PLOT "RESULT"
 
 	if not rangeFlag:
 		print(utils.colorPrint("\n\tShowing orbits for " + str(len(orbits)) + " orbits", utils.bcolors.GREEN))
 	
 	else:
 		print(utils.colorPrint("\n\tShowing orbits for " + str(len(orbits)) + " orbits in range " + rangeString, utils.bcolors.GREEN))
+
+	# SHOWING ANIMATED PLOT
 
 	if not instantPlot:
 		ani = animation.FuncAnimation(fig, updateLines, frames=framesNumber, fargs=(trajectories, lines, speed), interval=1, repeat=False)

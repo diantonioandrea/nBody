@@ -52,36 +52,16 @@ while True: # interface
 		except:
 			pass
 
-		command = " ".join(input("\n" + user + "@" + hostName + ": ").split()).lower()
-		instructions = command.split(" ")
-
-		# OPTIONS, SINGLE DASH [[-key1, value1], ...] AND DOUBLE DASH [--key1, ...]
-
-		try: 
-			sdOpts = []
-			ddOpts = []
-
-			for inst in instructions:
-				if "--" in inst:
-					ddOpts.append(inst)
-				
-				elif "-" in inst:
-					try:
-						if type(float(inst)) == float: # avoids passing negative numbers as options
-							pass
-
-					except(ValueError):
-						sdOpts.append([inst, instructions[instructions.index(inst) + 1]])
-
-		except(IndexError):
-			print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))
-			continue
+		instructions, sdOpts, ddOpts = utils.getCommand("\n" + user + "@" + hostName + ": ")
 
 		if len(instructions) > 0:
 
+			if instructions[0] == "skip": # Ctrl+C or EOF handler
+				continue
+
 			# EXIT PROGRAM
 
-			if instructions[0] in ["exit", "quit"]:
+			elif instructions[0] in ["exit", "quit"]:
 				sys.exit(0)
 
 			# HELP
@@ -157,13 +137,13 @@ while True: # interface
 				graphics.plot(orbits, sdOptions=sdOpts, ddOptions=ddOpts)
 				continue
 
-			# DUMP BODIES LIST TO A .pck FILE
+			# DUMP BODIES AND ORBITS LIST TO A .pck FILE
 			
 			elif instructions[0] == "dump":
 				utils.dump([bodies, orbits], sdOptions=sdOpts) # dumps to a .pck file
 				continue
 
-			# LOAD BODIES LIST FROM A .pck OR .csv FILE
+			# LOAD BODIES AND ORBITS LIST FROM A .pck OR BODIES LIST FROM A .csv FILE
 				
 			elif instructions[0] == "load":
 				loadContent, loadExt = utils.load(sdOptions=sdOpts, ddOptions=ddOpts, noneObject=[[], []])
@@ -171,19 +151,27 @@ while True: # interface
 				if loadExt == ".pck":
 					bodies = loadContent[0]
 					orbits = loadContent[1]
+					
+					loadColor = utils.bcolors.GREEN
 
 				elif loadExt == ".csv":
 					bodies = []
 					orbits = []
+
+					loadColor = utils.bcolors.GREEN
 
 					for csvLines in loadContent:
 						newBody = physics.body(csvLines)
 
 						if newBody.creationFlag:
 							bodies.append(newBody)
+						
+						else:
+							loadColor = utils.bcolors.RED
+							break
 				
 				if len(bodies) > 0:
-					print(utils.colorPrint("\tLoaded " + str(len(bodies)) + " bodies", utils.bcolors.GREEN))
+					print(utils.colorPrint("\tLoaded " + str(len(bodies)) + " bodies", loadColor))
 				continue
 		
 		print(utils.colorPrint("\n\tError: syntax error", utils.bcolors.RED))

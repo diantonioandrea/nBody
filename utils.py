@@ -1,4 +1,5 @@
 import pickle, colorama
+import numpy as np
 
 # COLORS
 
@@ -12,6 +13,36 @@ class bcolors:
 
 def colorPrint(string: str, color: str):
 	return color + string + '\033[0m'
+
+def getCommand(commandString: str) -> tuple:
+	command = " ".join(input(commandString).split()).lower()
+	instructions = command.split(" ")
+
+	# OPTIONS, SINGLE DASH [[-key1, value1], ...] AND DOUBLE DASH [--key1, ...]
+
+	try: 
+		sdOpts = []
+		ddOpts = []
+
+		for inst in instructions:
+			if "--" in inst:
+				ddOpts.append(inst)
+			
+			elif "-" in inst:
+				try:
+					if type(float(inst)) == float: # avoids passing negative numbers as options
+						pass
+
+				except(ValueError):
+					sdOpts.append([inst, instructions[instructions.index(inst) + 1]])
+	
+	except(IndexError):
+		return [], [], []
+	
+	except(EOFError, KeyboardInterrupt):
+		return ["skip"], [], []
+		
+	return instructions, sdOpts, ddOpts
 
 def checkOptions(rOpts: list, sdOpts=[], ddOpts=[]):
 	for opts in rOpts:
@@ -111,6 +142,17 @@ def load(sdOptions=[], ddOptions=[], noneObject=None):
 
 	return loadContent, ext
 
+def skipStack(array: np.array, skips: int) -> np.array:
+	if skips >= len(array):
+		return array
+
+	newStack = np.array(array[0])
+
+	for j in range(1, len(array), skips):
+		newStack = np.vstack([newStack, array[j]])
+
+	return newStack
+
 def help():
 	print(colorPrint("\n\tN-BODY HELP", bcolors.BLUE))
 
@@ -141,6 +183,7 @@ def help():
 	print("\t\tPlots computed orbits")
 	print("\n\t\tAvailable options:")
 	print("\n\t\t-sp N, speed: sets N as plotting speed")
+	print("\t\t-sk N, skips: sets N as number of skips")
 	print("\t\t-rn RANGESTART:RANGEEND, range: plots only bodies in this range")
 	print("\t\t--now: instantly plots computed orbits, ignores -sp")
 
