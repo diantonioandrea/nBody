@@ -80,7 +80,7 @@ def dump(tbDumped, sdOptions=[]):
 		if opts[0] == "-o": # output file
 			filename = opts[1] + ".pck"
 
-		elif opts[0] == "-p": # path (until folder before)
+		elif opts[0] == "-p": # path
 			path = opts[1]
 
 	try:
@@ -177,7 +177,7 @@ def help():
 	print("\n\t\tAvailable options:")
 	print("\n\t\t-t N, time: sets N as computation time, " + colorPrint("required", bcolors.RED))
 	print("\t\t-st N, steps: sets N as steps number, " + colorPrint("required", bcolors.RED))
-	print("\t\t--parallel: uses parallel computing")
+	print("\t\t--parallel: uses parallel computing, " + colorPrint("only on linux", bcolors.RED))
 
 	print(colorPrint("\n\tshow", bcolors.BLUE))
 	print("\t\tPlots computed orbits")

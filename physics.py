@@ -1,4 +1,4 @@
-import joblib, time, multiprocessing
+import sys, time, multiprocessing
 import numpy as np
 
 import utils
@@ -193,7 +193,11 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 	
 	for opts in ddOptions:
 		if opts == "--parallel":
-			parallelFlag = True
+			if "linux" not in sys.platform:
+				print(utils.colorPrint("\n\tError: feature not available on this platform yet", utils.bcolors.RED))
+
+			else:
+				parallelFlag = True
 
 	if stepsNumber == 0:
 		print(utils.colorPrint("\n\tError: steps error", utils.bcolors.RED))
