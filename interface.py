@@ -88,7 +88,7 @@ while True: # interface
 				
 				continue
 		
-			# CLEAR BODIES LIST
+			# CLEAR BODIES AND/OR ORBITS LISTS
 
 			elif instructions[0] == "clear":
 				if "--all" in ddOpts:
@@ -148,11 +148,15 @@ while True: # interface
 			elif instructions[0] == "load":
 				loadContent, loadExt = utils.load(sdOptions=sdOpts, ddOptions=ddOpts, noneObject=[[], []])
 
+				# LOADS .pck
+
 				if loadExt == ".pck":
 					bodies = loadContent[0]
 					orbits = loadContent[1]
 					
 					loadColor = utils.bcolors.GREEN
+
+				# LOADS .csv
 
 				elif loadExt == ".csv":
 					bodies = []

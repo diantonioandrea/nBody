@@ -193,7 +193,7 @@ def computeOrbits(bodies: list, sdOptions=[], ddOptions=[], errorReturn=[]):
 	
 	for opts in ddOptions:
 		if opts == "--parallel":
-			if "linux" not in sys.platform:
+			if "linux" not in sys.platform: # parallel computing only available on linux
 				print(utils.colorPrint("\n\tError: feature not available on this platform yet", utils.bcolors.RED))
 
 			else:
